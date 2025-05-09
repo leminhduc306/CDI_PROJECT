@@ -1,0 +1,137 @@
+package com.project.bean;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import javax.enterprise.context.SessionScoped;
+import javax.faces.application.FacesMessage;
+import javax.faces.component.EditableValueHolder;
+import javax.faces.component.UIComponent;
+import javax.faces.component.visit.VisitCallback;
+import javax.faces.component.visit.VisitContext;
+import javax.faces.component.visit.VisitResult;
+import javax.faces.context.FacesContext;
+import javax.faces.validator.ValidatorException;
+import javax.inject.Named;
+
+import com.project.dao.EmployeeDAO;
+import com.project.model.Employee;
+
+@Named 
+@SessionScoped
+
+public class EmployeeBean implements Serializable{
+	
+    private static final long serialVersionUID = 1L;
+    
+    private boolean show = false;
+    
+    private Employee employee = new Employee();
+    
+    private EmployeeDAO dao = new EmployeeDAO();
+    
+    private List<Employee> employees; 
+        
+    public Employee getEmployee() {
+        return employee;
+    }
+    
+    public void showForm(Employee emp) {
+        FacesContext context = FacesContext.getCurrentInstance();
+        context.getViewRoot().visitTree(VisitContext.createVisitContext(context), new VisitCallback() {
+			@Override
+			public VisitResult visit(VisitContext context1, UIComponent component) {
+			    if (component instanceof EditableValueHolder) {
+			        ((EditableValueHolder) component).resetValue();
+			    }
+			    return VisitResult.ACCEPT;
+			}
+		});
+
+        if (emp != null) {
+            this.employee = new Employee(emp.getCode(), emp.getName(), emp.getAge(), emp.getDob());
+        } else {
+            this.employee = new Employee();
+        }
+        this.show = true;
+    }
+    
+    public void hiddenForm() {
+    	this.show = false;
+    }
+
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
+    }
+    
+    public List<Employee> getEmployees() {
+    	employee = new Employee();
+        if (employees == null) {
+            employees = dao.getAll();
+        }
+        return employees;
+    }
+    
+    public void save() {
+
+        dao.insert(employee);
+        employees = null;
+        employee = new Employee();
+        this.show=false;
+//        return null;
+    }
+    
+    
+    public void update() {
+        dao.update(employee);
+        employees = null;
+        employee = new Employee();
+        this.show=false;
+//        return null;
+    }
+
+    public void delete(Integer code) {
+        dao.delete(code);
+        employees = null;
+    }
+    
+    
+
+	public boolean isShow() {
+		return this.show;
+	}
+
+	public void setShow(boolean show) {
+		this.show = show;
+	}
+	
+    public void validateName(FacesContext context, UIComponent component, Object value) {
+    	
+        if (value == null || value.toString().trim().isEmpty()) {
+            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Name is required", null));
+        }
+        
+        String name = value.toString();
+        
+        Pattern pattern = Pattern.compile("^[A-Za-z\\s]+$"); 
+        
+        if(!pattern.matcher(name).matches()) {
+            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Name just contains characters and space", null));
+        }
+    }
+    
+	public void validateDob(FacesContext context, UIComponent component, Object value) {
+		
+        if (value == null || value.toString().trim().isEmpty()) {
+            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Date of Birth is required",null));
+        }
+        
+        LocalDate dob = (LocalDate) value;
+        LocalDate today = LocalDate.now();
+        if (dob.isAfter(today)) {
+            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Date of Birth cannot be in the future", null));
+        }
+	}
+}

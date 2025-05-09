@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:comp="http://xmlns.jcp.org/jsf/composite/components">
+
+<h:head>
+    <title>Home Page</title>
+    <script type="text/javascript">
+        function confirmDelete() {
+            return confirm('Are you sure you want to delete this employee??');
+        }
+    </script>
+</h:head>
+
+<h:body>
+
+    <!-- TABLE LIST -->
+    <h:form id="employeeForm">
+        <h:dataTable value="#{employeeBean.employees}" var="e" border="1" rendered="#{!employeeBean.show}">
+            <h:column>
+                <f:facet name="header">Employee Code</f:facet>
+                #{e.code}
+            </h:column>
+
+            <h:column>
+                <f:facet name="header">Employee Name</f:facet>
+                #{e.name}
+            </h:column>
+
+            <h:column>
+                <f:facet name="header">Age</f:facet>
+                #{e.age}
+            </h:column>
+
+            <h:column>
+                <f:facet name="header">Date of Birth</f:facet>
+                <h:outputText value="#{e.dob}" converter="localDateConverter" />
+            </h:column>
+
+            <h:column>
+                <f:facet name="header">Action</f:facet>
+                <h:commandLink value="Edit" action="#{employeeBean.showForm(e)}" style="margin-right:10px">
+                    <f:ajax execute="@this" render=":editForm :employeeForm" />
+                </h:commandLink>
+                <h:commandLink value="Delete" action="#{employeeBean.delete(e.code)}"
+                               onclick="return confirmDelete();" />
+            </h:column>
+        </h:dataTable>
+
+        <h:commandButton value="Add New"
+                         action="#{employeeBean.showForm(null)}"
+                         style="margin-top:10px"
+                         rendered="#{!employeeBean.show}">
+            <f:ajax render=":editForm :employeeForm" />
+        </h:commandButton>
+    </h:form>
+
+    <h:form id="editForm">
+        <h:panelGroup rendered="#{employeeBean.show}">
+            <h2>Employee Information</h2>
+            <h:panelGrid columns="1" cellpadding="5">
+				<comp:inputField
+				    id="name"
+				    label="Name:"
+				    value="#{employeeBean.employee.name}"
+				    validator="#{employeeBean.validateName}"
+				    converter="nameConverter"
+				    messageId="nameMessage" />
+				        
+                <comp:inputField
+                        id="dob"
+                        label="Date of Birth:"
+                        value="#{employeeBean.employee.dob}"
+                        validator="#{employeeBean.validateDob}"
+                        converter="localDateConverter"
+                        messageId="dobMessage" />
+            </h:panelGrid>
+
+            <br />
+
+            <h:commandButton value="Save"
+                             action="#{employeeBean.save}"
+                             style="margin-top:10px; margin-right:10px"
+                             rendered="#{employeeBean.employee.code == 0}">
+                <f:ajax execute=":editForm" render=":employeeForm :editForm" />
+            </h:commandButton>
+
+            <h:commandButton value="Update"
+                             action="#{employeeBean.update}"
+                             style="margin-top:10px; margin-right:10px"
+                             rendered="#{employeeBean.employee.code != 0}">
+                <f:ajax execute=":editForm" render=":employeeForm :editForm" />
+            </h:commandButton>
+
+            <h:commandButton value="Cancel"
+                             action="#{employeeBean.hiddenForm}">
+                <f:ajax render="@all" />
+            </h:commandButton>
+
+        </h:panelGroup>
+    </h:form>
+
+</h:body>
+</html>

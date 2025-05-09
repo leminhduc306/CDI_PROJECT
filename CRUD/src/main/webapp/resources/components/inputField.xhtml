@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:composite="http://xmlns.jcp.org/jsf/composite"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:cc="http://xmlns.jcp.org/jsf/composite">
+
+<composite:interface>
+    <composite:attribute name="id" required="true" />
+    <composite:attribute name="label" required="true" />
+    <composite:attribute name="value" required="true" />
+    <composite:attribute name="validator"
+                         method-signature="void validate(javax.faces.context.FacesContext, javax.faces.component.UIComponent, java.lang.Object)"
+                         required="false" />
+    <composite:attribute name="converter" required="false" />
+    <composite:attribute name="messageId" required="true" />
+    <composite:attribute name="event" default="blur" />
+</composite:interface>
+
+<composite:implementation>
+
+    <h:outputLabel for="input" value="#{cc.attrs.label}" />
+
+    <h:inputText id="input"
+                 value="#{cc.attrs.value}"
+                 validator="#{cc.attrs.validator}">
+        <f:ajax event="#{cc.attrs.event}"
+                execute="@this"
+                render="@this #{cc.attrs.messageId}"
+                resetValues="true" />
+        <f:converter converterId="#{cc.attrs.converter}" rendered="#{not empty cc.attrs.converter}" />
+    </h:inputText>
+
+    <br />
+    <h:message id="#{cc.attrs.messageId}" for="input" style="color:red;" />
+
+</composite:implementation>
+
+</html>
