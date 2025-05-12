@@ -2,7 +2,7 @@ package com.project.bean;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
@@ -23,157 +23,159 @@ import javax.inject.Named;
 import com.project.model.Employee;
 import com.project.service.EmployeeService;
 
-@Named 
+@Named
 @ConversationScoped
-public class EmployeeBean implements Serializable{
-	
+public class EmployeeBean implements Serializable {
     private static final long serialVersionUID = 1L;
-    
+
     private boolean show = false;
     private boolean showTable = false;
     @Inject
     private EmployeeService employeeService;
-    
     @Inject
     private Conversation conversation;
-    
-    
-    private List<Employee> employees; 
-        
-    public Employee getEmployee() {
-        return employee;
-    }
-    
-    public void setEmployee(Employee employee) {
-        this.employee = employee;
-    }
-    
+    private List<Employee> employees;
     private Employee employee;
-    
-    
+
     @PostConstruct
     public void init() {
-        System.out.println("employee bean initiated");
-//        employees = employeeService.getAll();
+        employee = new Employee();
+        System.out.println("Employee bean initiated");
     }
-    
     @PreDestroy
     public void destroy() {
-        System.out.println("employee bean is destroyed");
+        System.out.println("Employee bean is destroyed");
     }
-    
+
     public void beginConversation() {
-    	if(conversation.isTransient()) {
-    		conversation.begin();
-            showTable = true;  
-    	}
-        System.out.println("Start bean");
+        if (conversation.isTransient()) {
+            conversation.begin();
+            showTable = true;
+            employees = null; // Refresh employee list
+        }
+        System.out.println("Conversation started");
     }
-    
+
     public void destroyConversation() {
-    	if(!conversation.isTransient()) {
-    		conversation.end();
-    	}
-        showTable = false; 
-        System.out.println("End bean");
+        if (!conversation.isTransient()) {
+            conversation.end();
+        }
+        showTable = false;
+        show = false;
+        employee = new Employee();
+        employees = null;
+        System.out.println("Conversation ended");
     }
-    
+
     public void showForm(Employee emp) {
         FacesContext context = FacesContext.getCurrentInstance();
         context.getViewRoot().visitTree(VisitContext.createVisitContext(context), new VisitCallback() {
-			@Override
-			public VisitResult visit(VisitContext context1, UIComponent component) {
-			    if (component instanceof EditableValueHolder) {
-			        ((EditableValueHolder) component).resetValue();
-			    }
-			    return VisitResult.ACCEPT;
-			}
-		});
+            @Override
+            public VisitResult visit(VisitContext context, UIComponent component) {
+                if (component instanceof EditableValueHolder) {
+                    ((EditableValueHolder) component).resetValue();
+                }
+                return VisitResult.ACCEPT;
+            }
+        });
 
-        if (emp != null) {
-            this.employee = new Employee(emp.getCode(), emp.getName(), emp.getAge(), emp.getDob());
-        } else {
-            this.employee = new Employee();
-        }
-        this.show = true;
+        employee = (emp != null) ? new Employee(emp.getCode(), emp.getName(), emp.getAge(), emp.getDob()) : new Employee();
+        show = true;
+        showTable = false; // Hide table when showing form
     }
-    
+
     public void hiddenForm() {
-    	this.show = false;
+        show = false;
+        employee = new Employee();
+        if (!conversation.isTransient()) {
+            showTable = true; // Show table after canceling, if conversation is active
+        }
     }
 
-    
     public List<Employee> getEmployees() {
-    	employee = new Employee();
-        if (employees == null) {
+        if (employees == null && showTable) {
             employees = employeeService.getAll();
         }
         return employees;
     }
-    
+
     public void save() {
-    	employeeService.insert(employee);
-        employees = null;
+        employeeService.insert(employee);
+        employees = null; // Refresh list
+        show = false;
         employee = new Employee();
-        this.show=false;
+        if (!conversation.isTransient()) {
+            showTable = true; // Show table after saving, if conversation is active
+        }
+        FacesContext.getCurrentInstance().addMessage(null, 
+            new FacesMessage(FacesMessage.SEVERITY_INFO, "Employee saved successfully", null));
     }
-    
-    
+
     public void update() {
-    	employeeService.update(employee);
-        employees = null;
+        employeeService.update(employee);
+        employees = null; // Refresh list
+        show = false;
         employee = new Employee();
-        this.show=false;
+        if (!conversation.isTransient()) {
+            showTable = true; // Show table after updating, if conversation is active
+        }
+        FacesContext.getCurrentInstance().addMessage(null, 
+            new FacesMessage(FacesMessage.SEVERITY_INFO, "Employee updated successfully", null));
     }
 
     public void delete(Integer code) {
-    	employeeService.delete(code);
-        employees = null;
+        employeeService.delete(code);
+        employees = null; // Refresh list
+        FacesContext.getCurrentInstance().addMessage(null, 
+            new FacesMessage(FacesMessage.SEVERITY_INFO, "Employee deleted successfully", null));
     }
-    
-    
 
-	public boolean isShow() {
-		return this.show;
-	}
+    public boolean isShow() {
+        return show;
+    }
 
-	public void setShow(boolean show) {
-		this.show = show;
-	}
-	
+    public void setShow(boolean show) {
+        this.show = show;
+    }
+
+    public boolean isShowTable() {
+        return showTable;
+    }
+
+    public void setShowTable(boolean showTable) {
+        this.showTable = showTable;
+    }
+
+    public Employee getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
+    }
+
     public void validateName(FacesContext context, UIComponent component, Object value) {
-    	
         if (value == null || value.toString().trim().isEmpty()) {
             throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Name is required", null));
         }
-        
         String name = value.toString();
-        
-        Pattern pattern = Pattern.compile("^[A-Za-z\\s]+$"); 
-        
-        if(!pattern.matcher(name).matches()) {
-            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Name just contains characters and space", null));
+        Pattern pattern = Pattern.compile("^[A-Za-z\\s]+$");
+        if (!pattern.matcher(name).matches()) {
+            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Name must contain only letters and spaces", null));
         }
     }
-    
-	public void validateDob(FacesContext context, UIComponent component, Object value) {
-		
-        if (value == null || value.toString().trim().isEmpty()) {
-            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Date of Birth is required",null));
+
+    public void validateDob(FacesContext context, UIComponent component, Object value) {
+        if (value == null) {
+            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Date of Birth is required", null));
         }
-        
+        if (!(value instanceof LocalDate)) {
+            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Invalid Date of Birth format", null));
+        }
         LocalDate dob = (LocalDate) value;
         LocalDate today = LocalDate.now();
         if (dob.isAfter(today)) {
             throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Date of Birth cannot be in the future", null));
         }
-	}
-
-	public boolean isShowTable() {
-		return showTable;
-	}
-
-	public void setShowTable(boolean showTable) {
-		this.showTable = showTable;
-	}
+    }
 }
