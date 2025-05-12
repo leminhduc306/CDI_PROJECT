@@ -54,7 +54,7 @@ public class EmployeeBean implements Serializable{
     @PostConstruct
     public void init() {
         System.out.println("employee bean initiated");
-        employees = employeeService.getAll();
+//        employees = employeeService.getAll();
     }
     
     @PreDestroy

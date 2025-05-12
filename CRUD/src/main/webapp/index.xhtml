@@ -12,14 +12,9 @@
     </script>
     </h:head>
     <h:body>
-					  <h:commandButton value="Start Conversation" action="#{employeeBean.beginConversation}" style = "margin-top:10px; margin-bottom:10px; margin-right:10px">
-					    <f:ajax render=":editForm :employeeForm"/>
-					  </h:commandButton>       
-					    <h:commandButton value="Destroy Conversation" action="#{employeeBean.destroyConversation}" style = "margin-top:10px; margin-bottom:10px">
-					    <f:ajax render=":editForm :employeeForm"/>
-					  </h:commandButton>       				     
+ 				     
         <h:form id = "employeeForm" >
-            <h:dataTable value="#{employeeBean.employees}" var="e" border="1" rendered="#{employeeBean.showTable}">
+            <h:dataTable value="#{employeeBean.employees}" var="e" border="1" rendered="false">
                 <h:column>
                     <f:facet name="header">Employee Code</f:facet>
                     #{e.code}
@@ -50,7 +45,7 @@
 	      				<h:commandLink value="Delete" action="#{employeeBean.delete(e.code)}" onclick="return confirmDelete();" /> 
                </h:column>
             </h:dataTable>
-					  <h:commandButton value="Add New" action="#{employeeBean.showForm(null)}" style = "margin-top:10px" rendered="#{employee.showTable}">
+					  <h:commandButton value="Add New" action="#{employeeBean.showForm(null)}" style = "margin-top:10px" rendered="false">
 					    <f:ajax render=":editForm :employeeForm"/>
 					  </h:commandButton>        
 			  </h:form>
