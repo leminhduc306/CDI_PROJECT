@@ -51,7 +51,7 @@ public class EmployeeBean implements Serializable {
         if (conversation.isTransient()) {
             conversation.begin();
             showTable = true;
-            employees = null; // Refresh employee list
+            employees = null;
         }
         System.out.println("Conversation started");
     }
@@ -81,14 +81,14 @@ public class EmployeeBean implements Serializable {
 
         employee = (emp != null) ? new Employee(emp.getCode(), emp.getName(), emp.getAge(), emp.getDob()) : new Employee();
         show = true;
-        showTable = false; // Hide table when showing form
+        showTable = false; 
     }
 
     public void hiddenForm() {
         show = false;
         employee = new Employee();
         if (!conversation.isTransient()) {
-            showTable = true; // Show table after canceling, if conversation is active
+            showTable = true; 
         }
     }
 
@@ -105,10 +105,8 @@ public class EmployeeBean implements Serializable {
         show = false;
         employee = new Employee();
         if (!conversation.isTransient()) {
-            showTable = true; // Show table after saving, if conversation is active
+            showTable = true;
         }
-        FacesContext.getCurrentInstance().addMessage(null, 
-            new FacesMessage(FacesMessage.SEVERITY_INFO, "Employee saved successfully", null));
     }
 
     public void update() {
@@ -119,15 +117,11 @@ public class EmployeeBean implements Serializable {
         if (!conversation.isTransient()) {
             showTable = true; // Show table after updating, if conversation is active
         }
-        FacesContext.getCurrentInstance().addMessage(null, 
-            new FacesMessage(FacesMessage.SEVERITY_INFO, "Employee updated successfully", null));
     }
 
     public void delete(Integer code) {
         employeeService.delete(code);
         employees = null; // Refresh list
-        FacesContext.getCurrentInstance().addMessage(null, 
-            new FacesMessage(FacesMessage.SEVERITY_INFO, "Employee deleted successfully", null));
     }
 
     public boolean isShow() {

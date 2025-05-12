@@ -50,7 +50,6 @@ public class EmployeeDAO implements Serializable{
 
     
 	public List<Employee> getAll(){
-        System.out.println("get Employee");
         List<Employee> list = new ArrayList<>();
         
         
